@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/Lucid-Frameworks.iml" filepath="$PROJECT_DIR$/Lucid-Frameworks.iml" />
+      <module fileurl="file://$PROJECT_DIR$/RayCasting.iml" filepath="$PROJECT_DIR$/RayCasting.iml" />
     </modules>
   </component>
 </project>
