@@ -7,6 +7,7 @@ import java.awt.event.KeyListener;
 public class Camera implements KeyListener{
     public double xPos, yPos, xDir, yDir, xPlane, yPlane;
     public boolean left, right, forward, back;
+    public boolean strafe_left, strafe_right;
     public final double MOVE_SPEED = .06;
     public final double ROTATION_SPEED = .045;
     public Camera(double x, double y, double xd, double yd, double xp, double yp) {
@@ -26,6 +27,10 @@ public class Camera implements KeyListener{
             forward = true;
         if((key.getKeyCode() == KeyEvent.VK_DOWN))
             back = true;
+        if((key.getKeyCode() == KeyEvent.VK_A))
+            strafe_left = true;
+        if((key.getKeyCode() == KeyEvent.VK_D))
+            strafe_right = true;
     }
     public void keyReleased(KeyEvent key) {
         if((key.getKeyCode() == KeyEvent.VK_LEFT))
@@ -36,8 +41,30 @@ public class Camera implements KeyListener{
             forward = false;
         if((key.getKeyCode() == KeyEvent.VK_DOWN))
             back = false;
+        if((key.getKeyCode() == KeyEvent.VK_A))
+            strafe_left = false;
+        if((key.getKeyCode() == KeyEvent.VK_D))
+            strafe_right = false;
     }
     public void update(int[][] map) {
+        if(strafe_left)
+        {
+            if(map[(int)(xPos)][(int)(yPos+MOVE_SPEED*xDir)] == 0 && map[(int)(xPos-MOVE_SPEED*yDir)][(int)yPos] == 0 )
+            {
+                yPos+=MOVE_SPEED*xDir;
+                xPos-=MOVE_SPEED*yDir;
+            }
+
+        }
+        if(strafe_right)
+        {
+            if(map[(int)(xPos)][(int)(yPos-MOVE_SPEED*xDir)] == 0 && map[(int)(xPos+MOVE_SPEED*yDir)][(int)yPos] == 0 )
+            {
+                yPos-=MOVE_SPEED*xDir;
+                xPos+=MOVE_SPEED*yDir;
+            }
+
+        }
         if(forward) {
             if(map[(int)(xPos + xDir * MOVE_SPEED)][(int)yPos] == 0) {
                 xPos+=xDir*MOVE_SPEED;
