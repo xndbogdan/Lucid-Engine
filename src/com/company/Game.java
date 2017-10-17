@@ -38,19 +38,19 @@ public class Game extends JFrame implements Runnable{
                     {1,0,0,0,0,0,0,0,0,0,0,0,0,0,4},
                     {1,1,1,1,1,1,1,4,4,4,4,4,4,4,4}
             };
-    public Game() {
+    public Game(int Res_X, int Res_Y) {
         thread = new Thread(this);
-        image = new BufferedImage(1024, 768, BufferedImage.TYPE_INT_RGB);
+        image = new BufferedImage(Res_X, Res_Y, BufferedImage.TYPE_INT_RGB);
         pixels = ((DataBufferInt)image.getRaster().getDataBuffer()).getData();
         textures = new ArrayList<Texture>();
         textures.add(Texture.redbrick);
         textures.add(Texture.brick);
         textures.add(Texture.greystone);
         textures.add(Texture.stone);
-        camera = new Camera(4.5, 4.5, 1, 0, 0, -.66);
-        screen = new Screen(map, mapWidth, mapHeight, textures, 1024, 768);
+        camera = new Camera(4.5, 4.5, 1, 0, 0, -0.66);
+        screen = new Screen(map, mapWidth, mapHeight, textures, Res_X, Res_Y);
         addKeyListener(camera);
-        setSize(1024, 768);
+        setSize(Res_X, Res_Y);
         setResizable(false);
         setTitle("Lucid Frameworks");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -101,6 +101,6 @@ public class Game extends JFrame implements Runnable{
         }
     }
     public static void main(String [] args) {
-        Game game = new Game();
+        Game game = new Game(1024,768);
     }
 }
