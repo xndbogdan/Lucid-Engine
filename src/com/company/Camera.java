@@ -1,22 +1,42 @@
 package com.company;
 
+import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
+import java.awt.Robot;
 
-
-public class Camera implements KeyListener{
+public class Camera implements KeyListener,MouseListener, MouseMotionListener{
     public double xPos, yPos, xDir, yDir, xPlane, yPlane;
     public boolean left, right, forward, back;
     public boolean strafe_left, strafe_right;
     public final double MOVE_SPEED = .06;
     public final double ROTATION_SPEED = .045;
+    private int mouseX=0;
+
+    Robot a;
     public Camera(double x, double y, double xd, double yd, double xp, double yp) {
+
         xPos = x;
         yPos = y;
         xDir = xd;
         yDir = yd;
         xPlane = xp;
         yPlane = yp;
+
+        try
+        {
+            a = new Robot();
+        }
+        catch (Exception ex)
+        {
+
+        }
+
+
+
     }
     public void keyPressed(KeyEvent key) {
         if((key.getKeyCode() == KeyEvent.VK_LEFT))
@@ -46,13 +66,63 @@ public class Camera implements KeyListener{
         if((key.getKeyCode() == KeyEvent.VK_D))
             strafe_right = false;
     }
+    @Override
+    public void mouseEntered(MouseEvent e)
+    {
+
+    }
+    @Override
+    public void mouseExited(MouseEvent e)
+    {
+
+    }
+    @Override
+    public void mouseClicked(MouseEvent e)
+    {
+
+    }
+    @Override
+    public void mousePressed(MouseEvent e)
+    {
+
+    }
+    @Override
+    public void mouseReleased(MouseEvent e)
+    {
+
+    }
+    @Override
+    public void mouseMoved(MouseEvent e)
+    {
+        /*
+        if(mouseX>e.getX())
+        {
+            left=true;
+        }
+        else if(mouseX<e.getX())
+        {
+            right=true;
+        }
+        else
+        {
+            left=false;
+            right=false;
+        }
+        mouseX=e.getX();
+        */
+    }
+    @Override
+    public void mouseDragged(MouseEvent e)
+    {
+    }
+
     public void update(int[][] map) {
         if(strafe_left)
         {
             if(map[(int)(xPos)][(int)(yPos+MOVE_SPEED*xDir)] == 0 && map[(int)(xPos-MOVE_SPEED*yDir)][(int)yPos] == 0 )
             {
-                yPos+=MOVE_SPEED*xDir;
-                xPos-=MOVE_SPEED*yDir;
+                yPos+=MOVE_SPEED/1.7*xDir;
+                xPos-=MOVE_SPEED/1.7*yDir;
             }
 
         }
@@ -60,8 +130,8 @@ public class Camera implements KeyListener{
         {
             if(map[(int)(xPos)][(int)(yPos-MOVE_SPEED*xDir)] == 0 && map[(int)(xPos+MOVE_SPEED*yDir)][(int)yPos] == 0 )
             {
-                yPos-=MOVE_SPEED*xDir;
-                xPos+=MOVE_SPEED*yDir;
+                yPos-=MOVE_SPEED/1.7*xDir;
+                xPos+=MOVE_SPEED/1.7*yDir;
             }
 
         }

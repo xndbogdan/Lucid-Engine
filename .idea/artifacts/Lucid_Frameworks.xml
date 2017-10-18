@@ -1,0 +1,18 @@
+<component name="ArtifactManager">
+  <artifact type="apk" build-on-make="true" name="Lucid Frameworks">
+    <output-path>$PROJECT_DIR$/out/artifacts/Lucid_Frameworks</output-path>
+    <properties id="android-properties">
+      <options>
+        <option name="keyAlias" value="key0" />
+        <option name="keyPassword" value="QWNhc2E1NUA=" />
+        <option name="keyStorePassword" value="QWNhc2E1NUA=" />
+        <option name="keyStoreUrl" value="file://$PROJECT_DIR$/apkKey.jks" />
+        <option name="signingMode" value="RELEASE_SIGNED" />
+      </options>
+    </properties>
+    <root id="archive" name="Lucid Frameworks.apk">
+      <element id="dir-copy" path="$PROJECT_DIR$/res" />
+      <element id="module-output" name="RayCasting" />
+    </root>
+  </artifact>
+</component>

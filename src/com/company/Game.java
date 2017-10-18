@@ -47,9 +47,12 @@ public class Game extends JFrame implements Runnable{
         textures.add(Texture.brick);
         textures.add(Texture.greystone);
         textures.add(Texture.stone);
-        camera = new Camera(4.5, 4.5, 1, 0, 0, -0.66);
         screen = new Screen(map, mapWidth, mapHeight, textures, Res_X, Res_Y);
+        camera = new Camera(4.5, 4.5, 1, 0, 0, -0.66);
+
         addKeyListener(camera);
+        addMouseMotionListener(camera);
+        addMouseListener(camera);
         setSize(Res_X, Res_Y);
         setResizable(false);
         setTitle("Lucid Frameworks");
