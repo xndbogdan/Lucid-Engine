@@ -7,8 +7,10 @@ public class Screen {
     public int[][] map;
     public int mapWidth, mapHeight, width, height;
     public ArrayList<Texture> textures;
-
+    private float cameraHeight=1;
+    SinWave Sinus;
     public Screen(int[][] m, int mapW, int mapH, ArrayList<Texture> tex, int w, int h) {
+        Sinus = new SinWave(4.4f, 25f, 0.05f);
         map = m;
         mapWidth = mapW;
         mapHeight = mapH;
@@ -17,7 +19,13 @@ public class Screen {
         height = h;
     }
 
-    public int[] update(Camera camera, int[] pixels) {
+    public int[] update(Camera camera, int[] pixels)
+    {
+
+        Sinus.update(0.6f);
+        cameraHeight=Sinus.getY();
+        if(cameraHeight==0) Sinus.setX(0);
+
         for(int n=0; n<pixels.length/2; n++) {
             if(pixels[n] != Color.DARK_GRAY.getRGB()) pixels[n] = Color.DARK_GRAY.getRGB();
         }
@@ -91,22 +99,25 @@ public class Screen {
                 perpWallDist = Math.abs((mapY - camera.yPos + (1 - stepY) / 2) / rayDirY);
             //Now calculate the height of the wall based on the distance from the camera
             int lineHeight;
-            if(perpWallDist > 0) lineHeight = Math.abs((int)(height / perpWallDist));
+            if(perpWallDist > 0) lineHeight = Math.abs((int)((height) / perpWallDist));
             else lineHeight = height;
             //calculate lowest and highest pixel to fill in current stripe
             int drawStart = -lineHeight/2+ height/2;
+
             if(drawStart < 0)
                 drawStart = 0;
             int drawEnd = lineHeight/2 + height/2;
+
             if(drawEnd >= height)
                 drawEnd = height - 1;
+
             //add a texture
             int texNum = map[mapX][mapY] - 1;
             double wallX;//Exact position of where wall was hit
             if(side==1) {//If its a y-axis wall
                 wallX = (camera.xPos + ((mapY - camera.yPos + (1 - stepY) / 2) / rayDirY) * rayDirX);
             } else {//X-axis wall
-                wallX = (camera.yPos + ((mapX - camera.xPos + (1 - stepX) / 2) / rayDirX) * rayDirY);
+                wallX = (camera.yPos+ ((mapX - camera.xPos + (1 - stepX) / 2) / rayDirX) * rayDirY) ;
             }
             wallX-=Math.floor(wallX);
             //x coordinate on the texture
@@ -121,6 +132,10 @@ public class Screen {
                 else color = (textures.get(texNum).pixels[texX + (texY * textures.get(texNum).SIZE)]>>1) & 8355711;//Make y sides darker
                 pixels[x + y*(width)] = color;
             }
+        }
+        for(int i=pixels.length/2+pixels.length/3; i<pixels.length; i++){
+            pixels[i] = 299;
+
         }
         return pixels;
     }
