@@ -51,6 +51,10 @@ public class Camera implements KeyListener,MouseListener, MouseMotionListener{
             strafe_left = true;
         if((key.getKeyCode() == KeyEvent.VK_D))
             strafe_right = true;
+        if((key.getKeyCode() == KeyEvent.VK_ESCAPE))
+            System.exit(0);
+        if((key.getKeyCode() == KeyEvent.VK_SPACE))
+            Game.Firing = true;
     }
     public void keyReleased(KeyEvent key) {
         if((key.getKeyCode() == KeyEvent.VK_LEFT))
