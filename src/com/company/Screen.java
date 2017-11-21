@@ -133,14 +133,11 @@ public class Screen {
                 pixels[x + y*(width)] = color;
             }
         }
-<<<<<<< HEAD
 
-=======
         for(int i=pixels.length/2+pixels.length/3; i<pixels.length; i++){
             pixels[i] = 299;
 
         }
->>>>>>> 9142db8412ace0e6be47206d51b3523da0ff7d6a
         return pixels;
     }
 }

@@ -10,7 +10,6 @@ import javax.imageio.*;
 import javax.sound.sampled.*;
 
 public class Game extends JFrame implements Runnable{
-<<<<<<< HEAD
     public class Bot implements Runnable
     {
         public Bot()
@@ -69,8 +68,6 @@ public class Game extends JFrame implements Runnable{
 
     }
     public static boolean Firing =false;
-=======
->>>>>>> 9142db8412ace0e6be47206d51b3523da0ff7d6a
     public static int Health=100;
     private static final long serialVersionUID = 1L;
     public int mapWidth = 15;
@@ -82,7 +79,6 @@ public class Game extends JFrame implements Runnable{
     public ArrayList<Texture> textures;
     public Camera camera;
     public Screen screen;
-<<<<<<< HEAD
     public java.awt.image.BufferedImage currentGun;
     public java.io.File currentGunFile;
     public java.io.File currentGunFFile;
@@ -111,15 +107,18 @@ public class Game extends JFrame implements Runnable{
         }
     }
 
+
     public Game(int Res_X, int Res_Y, int[][] map) {
         currentGunFile = new java.io.File("res/Gun1.png");
         currentGunFFile = new java.io.File("res/Gun1F.png");
+        try
+        {
+            currentGun = ImageIO.read(currentGunFile);
+        }
+        catch(Exception ex)
+        {
 
-=======
-    public static int[][] map;
-
-    public Game(int Res_X, int Res_Y, int[][] map) {
->>>>>>> 9142db8412ace0e6be47206d51b3523da0ff7d6a
+        }
         this.map = map;
         thread = new Thread(this);
         image = new BufferedImage(Res_X, Res_Y, BufferedImage.TYPE_INT_RGB);
@@ -165,15 +164,10 @@ public class Game extends JFrame implements Runnable{
         }
 
         Graphics g = bs.getDrawGraphics();
-<<<<<<< HEAD
 
         g.setFont(new Font("TimesRoman", Font.PLAIN, 30));
 
         g.drawImage(image, 0, 0, image.getWidth(), image.getHeight(), null);
-
-        g.drawImage(currentGun,0+image.getWidth()/2+image.getWidth()/8,0+image.getHeight()/3 + image.getHeight()/8,null);
-
-
         //^ After gun draw hud
         /*
             for(int i=pixels.length/2+pixels.length/3; i<pixels.length; i++){
@@ -183,6 +177,7 @@ public class Game extends JFrame implements Runnable{
          */
         //^Legacy code not used anymore
         g.setColor(Color.decode("299"));
+        g.drawImage(currentGun,0+image.getWidth()/2+image.getWidth()/8,0+image.getHeight()/3 + image.getHeight()/8,null);
         g.fillRect(0,image.getHeight()/2+image.getHeight()/3,image.getWidth(),image.getWidth());
         g.setColor(Color.ORANGE);
         g.drawString("Health: "+ Health,screen.width/12,screen.height-screen.height/12);
@@ -201,12 +196,11 @@ public class Game extends JFrame implements Runnable{
             SoundThread.start();
         }
 
-=======
         g.setFont(new Font("TimesRoman", Font.PLAIN, 30));
         g.setColor(Color.ORANGE);
-        g.drawImage(image, 0, 0, image.getWidth(), image.getHeight(), null);
+
         g.drawString("Health: "+ Health,screen.width/12,screen.height-screen.height/12);
->>>>>>> 9142db8412ace0e6be47206d51b3523da0ff7d6a
+
         bs.show();
     }
     public void run() {
@@ -247,14 +241,8 @@ public class Game extends JFrame implements Runnable{
                         {1,0,0,0,0,0,0,0,0,0,0,0,0,0,4},
                         {1,1,1,1,1,1,1,4,4,4,4,4,4,4,4}
                 };
-<<<<<<< HEAD
         //^ The map will be loaded from file in the future
         Game game = new Game(1024,768,map);
 
-
-=======
-        //^ The map will be loaded in the future
-        Game game = new Game(1024,768,map);
->>>>>>> 9142db8412ace0e6be47206d51b3523da0ff7d6a
     }
 }
