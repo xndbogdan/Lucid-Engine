@@ -1,5 +1,7 @@
 package com.company;
 
+import com.sun.org.apache.xerces.internal.impl.xpath.XPath;
+
 import java.awt.*;
 import java.awt.image.BufferStrategy;
 import java.awt.image.BufferedImage;
@@ -67,6 +69,89 @@ public class Game extends JFrame implements Runnable{
         }
 
     }
+    public class Stepper implements Runnable
+    {
+        String location;
+        public Stepper(String location)
+        {
+            this.location=location;
+        }
+        public void run()
+        {
+            if(!Stepping)
+            {
+                Stepping=true;
+                System.out.println("Step");
+                try{
+                    AudioInputStream ais = AudioSystem.getAudioInputStream(new java.io.File(location));
+                    Clip test = AudioSystem.getClip();
+
+                    test.open(ais);
+                    test.start();
+
+                    while (!test.isRunning())
+                        Thread.sleep(10);
+                    while (test.isRunning())
+                        Thread.sleep(10);
+
+                    test.close();
+                    Stepping = false;
+                }catch(Exception ex){
+                    ex.printStackTrace();
+                }
+            }
+        }
+
+    }
+    public class MusicPlayer implements Runnable
+    {
+        String location;
+
+        public MusicPlayer(String location)
+        {
+            this.location=location;
+        }
+        public void run()
+        {
+            if(!musicPlaying)
+            {
+                musicPlaying=true;
+                while(true)
+                {
+                    int i=0;
+                    while(i<1)
+                    {
+
+                        try{
+                            AudioInputStream ais = AudioSystem.getAudioInputStream(new java.io.File(location+"track"+i+".wav"));
+                            Clip test = AudioSystem.getClip();
+                            test.open(ais);
+                            FloatControl gainControl =
+                                    (FloatControl) test.getControl(FloatControl.Type.MASTER_GAIN);
+                            gainControl.setValue(-5.0f); // Reduce volume by 5 decibels.
+                            test.start();
+
+                            while (!test.isRunning())
+                                Thread.sleep(10);
+                            while (test.isRunning())
+                                Thread.sleep(10);
+
+                            test.close();
+                            musicPlaying = false;
+                        }catch(Exception ex){
+                            ex.printStackTrace();
+                        }
+                        i++;
+                    }
+                }
+
+
+            }
+        }
+
+    }
+    public static boolean musicPlaying=false;
+    public static boolean Stepping=false;
     public static boolean Firing =false;
     public static int Health=100;
     private static final long serialVersionUID = 1L;
@@ -84,6 +169,7 @@ public class Game extends JFrame implements Runnable{
     public java.io.File currentGunFFile;
     public static int[][] map;
     public Thread SoundThread;
+    SinWave gunWave;
     public int lag=0;
     public void updateGun(String location, boolean Firing)
     {
@@ -109,6 +195,8 @@ public class Game extends JFrame implements Runnable{
 
 
     public Game(int Res_X, int Res_Y, int[][] map) {
+        gunWave = new SinWave(0.5f,10,0.5f);
+        gunWave.setX(0f);
         currentGunFile = new java.io.File("res/Gun1.png");
         currentGunFFile = new java.io.File("res/Gun1F.png");
         try
@@ -141,6 +229,9 @@ public class Game extends JFrame implements Runnable{
         setBackground(Color.black);
         setLocationRelativeTo(null);
         setVisible(true);
+        MusicPlayer a = new MusicPlayer("res/");
+        SoundThread = new Thread(a);
+        SoundThread.start();
         start();
     }
     private synchronized void start() {
@@ -155,6 +246,8 @@ public class Game extends JFrame implements Runnable{
             e.printStackTrace();
         }
     }
+
+
 
     public void render() {
         BufferStrategy bs = getBufferStrategy();
@@ -177,7 +270,10 @@ public class Game extends JFrame implements Runnable{
          */
         //^Legacy code not used anymore
         g.setColor(Color.decode("299"));
-        g.drawImage(currentGun,0+image.getWidth()/2+image.getWidth()/8,0+image.getHeight()/3 + image.getHeight()/8,null);
+        if(camera.forward || camera.back || camera.strafe_right || camera.strafe_left)
+            g.drawImage(currentGun,0+image.getWidth()/2+image.getWidth()/8,0+image.getHeight()/3 + image.getHeight()/8-(int)gunWave.getY(),null);
+        else g.drawImage(currentGun,0+image.getWidth()/2+image.getWidth()/8,0+image.getHeight()/3 + image.getHeight()/8,null);
+
         g.fillRect(0,image.getHeight()/2+image.getHeight()/3,image.getWidth(),image.getWidth());
         g.setColor(Color.ORANGE);
         g.drawString("Health: "+ Health,screen.width/12,screen.height-screen.height/12);
@@ -202,6 +298,19 @@ public class Game extends JFrame implements Runnable{
         g.drawString("Health: "+ Health,screen.width/12,screen.height-screen.height/12);
 
         bs.show();
+        if(camera.forward || camera.back || camera.strafe_right || camera.strafe_left)
+        {
+            gunWave.update(0.12);
+            if((int)gunWave.getY()==-9)
+            {
+
+                Stepper a = new Stepper("res/Step.wav");
+                SoundThread = new Thread(a);
+                SoundThread.start();
+
+            }
+        }
+        else gunWave.setX(0);
     }
     public void run() {
         long lastTime = System.nanoTime();
