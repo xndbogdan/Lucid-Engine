@@ -1,5 +1,7 @@
-package com.company;
 
+package com.company;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
 import com.sun.org.apache.xerces.internal.impl.xpath.XPath;
 
 import java.awt.*;
@@ -36,23 +38,37 @@ public class Game extends JFrame implements Runnable{
         }
 
     }
+
     public class Shooter implements Runnable
     {
-        String location;
-        public Shooter(String location)
+        public Shooter()
         {
-            this.location=location;
         }
         public void run()
         {
+            try {
+                currentGun = ImageIO.read(currentGunFFile);
+            }
+            catch(Exception ex)
+            {
+
+            }
             Firing = false;
+
             try{
-                AudioInputStream ais = AudioSystem.getAudioInputStream(new java.io.File(location));
+                AudioInputStream ais = AudioSystem.getAudioInputStream(new java.io.File(gunPath+"Gun"+selectedGun+".wav"));
                 Clip test = AudioSystem.getClip();
 
                 test.open(ais);
                 test.start();
+                Thread.sleep(200);
+                try {
+                    currentGun = ImageIO.read(currentGunFile);
+                }
+                catch(Exception ex)
+                {
 
+                }
                 while (!test.isRunning())
                     Thread.sleep(10);
                 while (test.isRunning())
@@ -60,12 +76,33 @@ public class Game extends JFrame implements Runnable{
 
                 test.close();
 
+
+
             }catch(Exception ex){
                 ex.printStackTrace();
             }
+        }
+        public void updateGun(boolean Firing)
+        {
+            try
+            {
+                if(Firing)  currentGun = ImageIO.read(currentGunFFile);
+                else
+                {
+                    while(lag<40)
+                    {
+                        Thread.sleep(40);
+                        currentGun = ImageIO.read(currentGunFile);
 
+                    }
+                    lag=0;
+                }
 
+            }
+            catch(Exception ex)
+            {
 
+            }
         }
 
     }
@@ -81,7 +118,7 @@ public class Game extends JFrame implements Runnable{
             if(!Stepping)
             {
                 Stepping=true;
-                System.out.println("Step");
+                //System.out.println("Step");
                 try{
                     AudioInputStream ais = AudioSystem.getAudioInputStream(new java.io.File(location));
                     Clip test = AudioSystem.getClip();
@@ -122,13 +159,14 @@ public class Game extends JFrame implements Runnable{
                     while(i<1)
                     {
 
+
                         try{
                             AudioInputStream ais = AudioSystem.getAudioInputStream(new java.io.File(location+"track"+i+".wav"));
                             Clip test = AudioSystem.getClip();
                             test.open(ais);
                             FloatControl gainControl =
                                     (FloatControl) test.getControl(FloatControl.Type.MASTER_GAIN);
-                            gainControl.setValue(-5.0f); // Reduce volume by 5 decibels.
+                            gainControl.setValue(-12.0f); // Reduce volume by 5 decibels.
                             test.start();
 
                             while (!test.isRunning())
@@ -150,6 +188,21 @@ public class Game extends JFrame implements Runnable{
         }
 
     }
+    public static void changeGun(int index)
+    {
+        selectedGun = index;
+        currentGunFile = new java.io.File(gunPath + "Gun" + index + ".png");
+        currentGunFFile = new java.io.File(gunPath + "Gun" + index + "F.png");
+        try
+        {
+            currentGun = ImageIO.read(currentGunFile);
+        }
+        catch(Exception ex)
+        {
+
+        }
+
+    }
     public static boolean musicPlaying=false;
     public static boolean Stepping=false;
     public static boolean Firing =false;
@@ -158,47 +211,32 @@ public class Game extends JFrame implements Runnable{
     public int mapWidth = 15;
     public int mapHeight = 15;
     private Thread thread;
+    public static int selectedGun=1;
     private boolean running;
     private BufferedImage image;
     public int[] pixels;
     public ArrayList<Texture> textures;
     public Camera camera;
     public Screen screen;
-    public java.awt.image.BufferedImage currentGun;
-    public java.io.File currentGunFile;
-    public java.io.File currentGunFFile;
+    public static java.awt.image.BufferedImage currentGun;
+    public static java.io.File currentGunFile;
+    public static java.io.File currentGunFFile;
     public static int[][] map;
     public Thread SoundThread;
+    public static String gunPath="res/";
     SinWave gunWave;
+    SinWave bobbingWave;
     public int lag=0;
-    public void updateGun(String location, boolean Firing)
-    {
-        try
-        {
-            if(Firing)  currentGun = ImageIO.read(currentGunFFile);
-            else
-            {
-                if(lag>40)
-                {
-                    currentGun = ImageIO.read(currentGunFile);
-                    lag=0;
-                }
-                else lag++;
-            }
 
-        }
-        catch(Exception ex)
-        {
-
-        }
-    }
 
 
     public Game(int Res_X, int Res_Y, int[][] map) {
-        gunWave = new SinWave(0.5f,10,0.5f);
+        gunWave = new SinWave(0.6f,10,0.5f);
         gunWave.setX(0f);
-        currentGunFile = new java.io.File("res/Gun1.png");
-        currentGunFFile = new java.io.File("res/Gun1F.png");
+        bobbingWave = new SinWave(1.2f,10,0.5f);
+        bobbingWave.setX(0f);
+        currentGunFile = new java.io.File(gunPath+"Gun"+ selectedGun +".png");
+        currentGunFFile = new java.io.File(gunPath +"Gun" + selectedGun +"F.png");
         try
         {
             currentGun = ImageIO.read(currentGunFile);
@@ -271,8 +309,13 @@ public class Game extends JFrame implements Runnable{
         //^Legacy code not used anymore
         g.setColor(Color.decode("299"));
         if(camera.forward || camera.back || camera.strafe_right || camera.strafe_left)
-            g.drawImage(currentGun,0+image.getWidth()/2+image.getWidth()/8,0+image.getHeight()/3 + image.getHeight()/8-(int)gunWave.getY(),null);
-        else g.drawImage(currentGun,0+image.getWidth()/2+image.getWidth()/8,0+image.getHeight()/3 + image.getHeight()/8,null);
+            g.drawImage(currentGun,0+image.getWidth()/2+image.getWidth()/8-(int)bobbingWave.getY()/4,0+image.getHeight()/3 + image.getHeight()/8-(int)gunWave.getY(),null);
+        else
+        {
+            bobbingWave.setX(0);
+            gunWave.setX(0);
+            g.drawImage(currentGun,0+image.getWidth()/2+image.getWidth()/8,0+image.getHeight()/3 + image.getHeight()/8,null);
+        }
 
         g.fillRect(0,image.getHeight()/2+image.getHeight()/3,image.getWidth(),image.getWidth());
         g.setColor(Color.ORANGE);
@@ -284,10 +327,11 @@ public class Game extends JFrame implements Runnable{
         /*
         Audio Part!
          */
-        updateGun("res/Gun1.png",Firing);
+
+
         if(Firing)
         {
-            Shooter a = new Shooter("res/Gun1.wav");
+            Shooter a = new Shooter();
             SoundThread = new Thread(a);
             SoundThread.start();
         }
@@ -300,7 +344,8 @@ public class Game extends JFrame implements Runnable{
         bs.show();
         if(camera.forward || camera.back || camera.strafe_right || camera.strafe_left)
         {
-            gunWave.update(0.12);
+            gunWave.update(0.08);
+            bobbingWave.update(0.08);
             if((int)gunWave.getY()==-9)
             {
 
@@ -331,27 +376,5 @@ public class Game extends JFrame implements Runnable{
             render();//displays to the screen unrestricted time
         }
     }
-    public static void main(String [] args) {
-        int[][] map =
-                {
-                        {1,1,1,1,1,1,1,1,2,2,2,2,2,2,2},
-                        {1,0,0,0,0,0,0,0,2,0,0,0,0,0,2},
-                        {1,0,3,3,3,3,3,0,0,0,0,0,0,0,2},
-                        {1,0,3,0,0,0,3,0,2,0,0,0,0,0,2},
-                        {1,0,3,0,0,0,3,0,2,2,2,0,2,2,2},
-                        {1,0,3,0,0,0,3,0,2,0,0,0,0,0,2},
-                        {1,0,3,3,0,3,3,0,2,0,0,0,0,0,2},
-                        {1,0,0,0,0,0,0,0,2,0,0,0,0,0,2},
-                        {1,1,1,1,1,1,1,1,4,4,4,0,4,4,4},
-                        {1,0,0,0,0,0,1,4,0,0,0,0,0,0,4},
-                        {1,0,0,0,0,0,1,4,0,0,0,0,0,0,4},
-                        {1,0,0,0,0,0,1,4,0,3,3,3,3,0,4},
-                        {1,0,0,0,0,0,1,4,0,3,3,3,3,0,4},
-                        {1,0,0,0,0,0,0,0,0,0,0,0,0,0,4},
-                        {1,1,1,1,1,1,1,4,4,4,4,4,4,4,4}
-                };
-        //^ The map will be loaded from file in the future
-        Game game = new Game(1024,768,map);
 
-    }
 }

@@ -8,9 +8,9 @@ public class Screen {
     public int mapWidth, mapHeight, width, height;
     public ArrayList<Texture> textures;
     private float cameraHeight=1;
-    SinWave Sinus;
+
     public Screen(int[][] m, int mapW, int mapH, ArrayList<Texture> tex, int w, int h) {
-        Sinus = new SinWave(4.4f, 25f, 0.05f);
+
         map = m;
         mapWidth = mapW;
         mapHeight = mapH;
@@ -22,9 +22,7 @@ public class Screen {
     public int[] update(Camera camera, int[] pixels)
     {
 
-        Sinus.update(0.6f);
-        cameraHeight=Sinus.getY();
-        if(cameraHeight==0) Sinus.setX(0);
+
 
         for(int n=0; n<pixels.length/2; n++) {
             if(pixels[n] != Color.DARK_GRAY.getRGB()) pixels[n] = Color.DARK_GRAY.getRGB();
@@ -128,9 +126,18 @@ public class Screen {
             for(int y=drawStart; y<drawEnd; y++) {
                 int texY = (((y*2 - height + lineHeight) << 6) / lineHeight) / 2;
                 int color;
-                if(side==0) color = textures.get(texNum).pixels[texX + (texY * textures.get(texNum).SIZE)];
-                else color = (textures.get(texNum).pixels[texX + (texY * textures.get(texNum).SIZE)]>>1) & 8355711;//Make y sides darker
-                pixels[x + y*(width)] = color;
+                try
+                {
+                    if(side==0) color = textures.get(texNum).pixels[texX + (texY * textures.get(texNum).SIZE)];
+                    else color = (textures.get(texNum).pixels[texX + (texY * textures.get(texNum).SIZE)]>>1) & 8355711;//Make y sides darker
+                    pixels[x + y*(width)] = color;
+                }
+                catch(Exception ex)
+                {
+                    System.out.println("U fucked up son");
+                }
+
+
             }
         }
 
