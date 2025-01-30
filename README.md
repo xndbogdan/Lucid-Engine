@@ -6,7 +6,7 @@ absolutely no one likes Java. Perhaps not even Java developers themselves. So he
 
 ## What's New?
 
-The Rust rewrite adds some cool features to the original:
+The Rust rewrite adds some new features to the original:
 - Proper movement and collision detection (We're big boys now)
 - Enemy AI with patrol paths and combat behavior
 - Projectile system with particle effects
