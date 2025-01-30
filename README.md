@@ -14,12 +14,12 @@ The Rust rewrite adds some new features to the original:
 
 ## Building & Running
 
-# Clone the repo
+### Clone the repo
 
-# Build it
+### Build it
 cargo build --release
 
-# Run it
+### Run it
 ```
 cargo run --release
 ```
