@@ -20,6 +20,7 @@ The Rust rewrite adds some new features to the original:
 cargo build --release
 
 # Run it
+```
 cargo run --release
 ```
 
