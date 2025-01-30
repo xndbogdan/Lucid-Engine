@@ -1,0 +1,35 @@
+[map]
+name = "Test Level"
+width = 8
+height = 8
+# 0 = empty, 1-4 = different wall textures
+layout = [
+    [1, 2, 3, 4, 4, 3, 2, 1],
+    [1, 0, 0, 0, 0, 0, 0, 1],
+    [2, 0, 3, 0, 0, 3, 0, 2],
+    [3, 0, 0, 0, 0, 0, 0, 3],
+    [4, 0, 3, 0, 0, 3, 0, 4],
+    [3, 0, 2, 0, 0, 2, 0, 3],
+    [2, 0, 0, 0, 0, 0, 0, 2],
+    [1, 2, 3, 4, 4, 3, 2, 1]
+]
+
+[[enemies]]
+type = "ranged"
+position = { x = 4.5, y = 4.5 }
+patrol_points = [
+    { x = 4.5, y = 2.5 },
+    { x = 4.5, y = 7.5 },
+    { x = 4.5, y = 4.5 },
+    { x = 4.5, y = 2.5 }
+]
+properties = { health = 50, damage = 5, speed = 2.0, attack_range = 8.0, chase_range = 10.0 }
+
+[player]
+spawn = { x = 1.5, y = 1.5 }
+direction = { x = 1.0, y = 0.0 }
+
+[metadata]
+author = "Roo"
+description = "Test level with one ranged enemy"
+version = "1.0"

@@ -1,9 +1,16 @@
+use crate::game::maps::MapFile;
+use anyhow::Result;
 use glam::Vec2;
 
 pub struct World {
+    pub spawn_point: Vec2,
+    pub spawn_direction: Vec2,
     pub map: Vec<Vec<i32>>,
     pub width: usize,
     pub height: usize,
+    pub name: String,
+    pub author: String,
+    pub description: String,
 }
 
 impl World {
@@ -21,7 +28,46 @@ impl World {
             map[y][width - 1] = 1;
         }
 
-        Self { map, width, height }
+        Self {
+            map,
+            width,
+            height,
+            spawn_point: Vec2::new(1.5, 1.5),
+            spawn_direction: Vec2::new(1.0, 0.0),
+            name: "Empty Map".to_string(),
+            author: "Unknown".to_string(),
+            description: "An empty map".to_string(),
+        }
+    }
+
+    pub fn load_from_map(map_file: &MapFile) -> Result<(Self, Vec<(Vec2, Vec<Vec2>)>)> {
+        let mut world = Self {
+            map: map_file.map.layout.clone(),
+            width: map_file.map.width,
+            height: map_file.map.height,
+            spawn_point: map_file.player.spawn.clone().into(),
+            spawn_direction: map_file.player.direction.clone().into(),
+            name: map_file.map.name.clone(),
+            author: map_file.metadata.author.clone(),
+            description: map_file.metadata.description.clone(),
+        };
+
+        // Collect enemy spawn points and patrol paths
+        let enemy_data: Vec<(Vec2, Vec<Vec2>)> = map_file
+            .enemies
+            .iter()
+            .map(|enemy| {
+                let pos: Vec2 = enemy.position.clone().into();
+                let patrol: Vec<Vec2> = enemy
+                    .patrol_points
+                    .iter()
+                    .map(|p| p.clone().into())
+                    .collect();
+                (pos, patrol)
+            })
+            .collect();
+
+        Ok((world, enemy_data))
     }
 
     pub fn get_tile(&self, x: usize, y: usize) -> Option<i32> {

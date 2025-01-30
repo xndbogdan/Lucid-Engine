@@ -1,16 +1,17 @@
 mod audio;
 mod engine;
 mod game;
-// We'll add modding later in Phase 8
-// mod modding;
 
-use engine::camera::Camera;
-use engine::raycaster::Raycaster;
-use log::error;
-use pixels::{Error, Pixels, SurfaceTexture};
+use anyhow::Result;
+use audio::sound::{MusicPlayer, SoundManager};
+use engine::{Camera, Raycaster};
+use game::{maps::MapFile, world::World, Enemy, Game, Particle, Weapon};
+use glam::Vec2;
+use log::{error, info};
+use pixels::{Pixels, SurfaceTexture};
 use std::time::Instant;
 use winit::dpi::LogicalSize;
-use winit::event::{DeviceEvent, ElementState, Event, VirtualKeyCode, WindowEvent};
+use winit::event::{DeviceEvent, ElementState, Event, MouseButton, VirtualKeyCode, WindowEvent};
 use winit::event_loop::{ControlFlow, EventLoop};
 use winit::window::{CursorGrabMode, WindowBuilder};
 
@@ -18,49 +19,116 @@ const WIDTH: u32 = 800;
 const HEIGHT: u32 = 600;
 const MOVE_SPEED: f32 = 2.5; // Units per second
 const MOUSE_SENSITIVITY: f32 = 0.002; // Slightly reduced for smoother control
-
-// Test map: 1 represents walls, 0 represents empty space
-const MAP: [[i32; 8]; 8] = [
-    [1, 1, 1, 1, 1, 1, 1, 1],
-    [1, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 1, 0, 0, 1, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 1],
-    [1, 0, 1, 0, 0, 1, 0, 1],
-    [1, 0, 1, 0, 0, 1, 0, 1],
-    [1, 0, 0, 0, 0, 0, 0, 1],
-    [1, 1, 1, 1, 1, 1, 1, 1],
-];
+const FOOTSTEP_INTERVAL: f32 = 0.5; // Time between footstep sounds
 
 struct GameState {
     camera: Camera,
     raycaster: Raycaster,
     last_update: Instant,
+    last_footstep: Instant,
     move_forward: bool,
     move_backward: bool,
     move_left: bool,
     move_right: bool,
     game_focused: bool,
-    map: Vec<Vec<i32>>,
+    world: World,
+    sound_manager: SoundManager,
+    music_player: MusicPlayer,
+    game: Game,
+    enemies: Vec<Enemy>,
 }
 
 impl GameState {
-    fn new() -> Self {
-        // Convert static map to owned Vec<Vec<i32>>
-        let map: Vec<Vec<i32>> = MAP.iter().map(|row| row.to_vec()).collect();
-        let mut raycaster = Raycaster::new(WIDTH, HEIGHT);
-        raycaster.set_map(map.clone());
+    fn new(stream_handle: rodio::OutputStreamHandle) -> Result<Self> {
+        info!("Loading map from assets/maps/test.toml");
+        let map_file = MapFile::load("assets/maps/test.toml")?;
+        let (world, enemy_spawns) = World::load_from_map(&map_file)?;
 
-        Self {
-            camera: Camera::new(1.5, 1.5), // Start near the corner, looking into the room
+        let mut raycaster = Raycaster::new(WIDTH, HEIGHT);
+        raycaster.set_map(world.map.clone());
+
+        // Load wall textures
+        let texture_paths = [
+            "assets/textures/walls/brick.png",
+            "assets/textures/walls/greystone.png",
+            "assets/textures/walls/redbrick.png",
+            "assets/textures/walls/stone.png",
+        ];
+
+        for path in texture_paths.iter() {
+            if let Err(e) = raycaster.load_texture(path) {
+                error!("Failed to load texture {}: {}", path, e);
+            }
+        }
+
+        // Initialize audio
+        let mut sound_manager = SoundManager::new(stream_handle.clone());
+        let mut music_player = MusicPlayer::new(stream_handle);
+
+        // Register sound effects
+        sound_manager.register_sound("step", "assets/audio/effects/step.wav");
+        sound_manager.register_sound("gun1", "assets/audio/weapons/gun1.wav");
+        sound_manager.register_sound("gun2", "assets/audio/weapons/gun2.wav");
+
+        // Start background music
+        if let Err(e) = music_player.play_music("assets/audio/music/track0.wav") {
+            error!("Failed to play background music: {}", e);
+        }
+
+        // Initialize game state
+        let mut game = Game::new(WIDTH, HEIGHT);
+
+        // Load weapon
+        if let Ok(idle_texture) =
+            engine::texture::Texture::load("assets/textures/weapons/gun1/idle.png")
+        {
+            if let Ok(fire_texture) =
+                engine::texture::Texture::load("assets/textures/weapons/gun1/fire.png")
+            {
+                game.weapon = Some(Weapon::new(idle_texture, fire_texture));
+            }
+        }
+
+        // Create enemies from map data
+        let mut enemies = Vec::new();
+        info!("Creating {} enemies from map data", enemy_spawns.len());
+
+        for (spawn_pos, patrol_points) in enemy_spawns {
+            if let Ok(idle_texture) =
+                engine::texture::Texture::load("assets/textures/weapons/gun2/idle.png")
+            {
+                if let Ok(fire_texture) =
+                    engine::texture::Texture::load("assets/textures/weapons/gun2/fire.png")
+                {
+                    info!("Creating ranged enemy at {:?}", spawn_pos);
+                    let mut enemy = Enemy::new_ranged(spawn_pos, idle_texture, fire_texture);
+                    info!("Setting patrol points: {:?}", patrol_points);
+                    enemy.set_patrol_points(patrol_points);
+                    enemies.push(enemy);
+                } else {
+                    error!("Failed to load enemy fire texture");
+                }
+            } else {
+                error!("Failed to load enemy idle texture");
+            }
+        }
+
+        Ok(Self {
+            camera: Camera::new(world.spawn_point.x, world.spawn_point.y),
             raycaster,
             last_update: Instant::now(),
+            last_footstep: Instant::now(),
             move_forward: false,
             move_backward: false,
             move_left: false,
             move_right: false,
             game_focused: true,
-            map,
-        }
+            world,
+            sound_manager,
+            music_player,
+            game,
+            enemies,
+        })
     }
 
     fn update(&mut self) {
@@ -69,24 +137,137 @@ impl GameState {
         self.last_update = now;
 
         if self.game_focused {
+            let mut is_moving = false;
+
             // Update camera position based on movement flags
             if self.move_forward {
-                self.camera.move_forward(MOVE_SPEED * dt, &self.map);
+                self.camera.move_forward(MOVE_SPEED * dt, &self.world.map);
+                is_moving = true;
             }
             if self.move_backward {
-                self.camera.move_forward(-MOVE_SPEED * dt, &self.map);
+                self.camera.move_forward(-MOVE_SPEED * dt, &self.world.map);
+                is_moving = true;
             }
             if self.move_left {
-                self.camera.move_right(-MOVE_SPEED * dt, &self.map);
+                self.camera.move_right(-MOVE_SPEED * dt, &self.world.map);
+                is_moving = true;
             }
             if self.move_right {
-                self.camera.move_right(MOVE_SPEED * dt, &self.map);
+                self.camera.move_right(MOVE_SPEED * dt, &self.world.map);
+                is_moving = true;
             }
+
+            // Play footstep sound if moving
+            if is_moving
+                && now.duration_since(self.last_footstep).as_secs_f32() >= FOOTSTEP_INTERVAL
+            {
+                if let Err(e) = self.sound_manager.play_sound("step") {
+                    error!("Failed to play footstep sound: {}", e);
+                }
+                self.last_footstep = now;
+            }
+
+            // Update weapon
+            if let Some(weapon) = &mut self.game.weapon {
+                weapon.update(dt, is_moving);
+            }
+
+            // Update enemies and handle their projectiles
+            let mut i = 0;
+            while i < self.enemies.len() {
+                if let Some((pos, vel, damage)) =
+                    self.enemies[i].update(self.camera.position, dt, &self.world.map)
+                {
+                    // Enemy wants to shoot
+                    if let Ok(projectile_texture) =
+                        engine::texture::Texture::load("assets/textures/particles/purple.png")
+                    {
+                        self.game.particles.add_particle(Particle::new(
+                            pos,
+                            vel,
+                            projectile_texture,
+                            damage,
+                            true,
+                        ));
+                        if let Err(e) = self.sound_manager.play_sound("gun2") {
+                            error!("Failed to play enemy gun sound: {}", e);
+                        }
+                    }
+                }
+
+                // Remove dead enemies
+                if !self.enemies[i].is_alive() {
+                    self.enemies.swap_remove(i);
+                } else {
+                    i += 1;
+                }
+            }
+
+            // Update particles and check collisions
+            self.game.particles.update(dt, &self.world.map);
+
+            // Collect particle effects
+            let mut player_damage = 0;
+            let mut enemy_damages = Vec::new();
+
+            // Check particle collisions
+            for particle in self.game.particles.get_particles() {
+                if particle.from_enemy {
+                    // Check if particle hits player
+                    let to_player = self.camera.position - particle.position;
+                    if to_player.length() < 0.5 {
+                        player_damage += particle.damage;
+                    }
+                } else {
+                    // Check if particle hits enemies
+                    for (i, enemy) in self.enemies.iter().enumerate() {
+                        let to_enemy = enemy.position - particle.position;
+                        if to_enemy.length() < 0.5 {
+                            enemy_damages.push((i, particle.damage));
+                        }
+                    }
+                }
+            }
+
+            // Apply collected damages
+            if player_damage > 0 {
+                self.game.take_damage(player_damage);
+            }
+
+            for (enemy_idx, damage) in enemy_damages {
+                if let Some(enemy) = self.enemies.get_mut(enemy_idx) {
+                    enemy.take_damage(damage);
+                }
+            }
+
+            // Update game state
+            self.game.update(dt, &self.world.map);
         }
     }
 
     fn render(&mut self, frame: &mut [u8]) {
-        self.raycaster.render(&self.camera, frame);
+        // Clear frame
+        for pixel in frame.chunks_exact_mut(4) {
+            pixel[0] = 0x40; // R
+            pixel[1] = 0x40; // G
+            pixel[2] = 0x40; // B
+            pixel[3] = 0xFF; // A
+        }
+
+        // Get particles for rendering
+        let particles = self.game.particles.get_particles();
+
+        // Render world, enemies, and particles
+        self.raycaster
+            .render(&self.camera, &self.enemies, particles, frame);
+
+        // Render weapon on top
+        if let Some(weapon) = &self.game.weapon {
+            weapon.render(frame, WIDTH, HEIGHT);
+        }
+
+        // Render health bar
+        self.game.render(frame);
     }
 
     fn handle_key_event(&mut self, key_code: VirtualKeyCode, pressed: bool) -> Option<bool> {
@@ -133,13 +314,37 @@ impl GameState {
 
     fn handle_mouse_motion(&mut self, delta_x: f64) {
         if self.game_focused {
-            // Negate delta_x to reverse rotation direction
             self.camera.rotate(-delta_x as f32 * MOUSE_SENSITIVITY);
+        }
+    }
+
+    fn handle_mouse_input(&mut self, button: MouseButton, pressed: bool) {
+        if self.game_focused && button == MouseButton::Left && pressed {
+            if let Some(weapon) = &mut self.game.weapon {
+                if weapon.fire() {
+                    if let Err(e) = self.sound_manager.play_sound("gun1") {
+                        error!("Failed to play gun sound: {}", e);
+                    }
+
+                    // Create player projectile
+                    if let Ok(projectile_texture) =
+                        engine::texture::Texture::load("assets/textures/particles/purple.png")
+                    {
+                        self.game.particles.add_particle(Particle::new(
+                            self.camera.position,
+                            self.camera.direction * 10.0,
+                            projectile_texture,
+                            20,
+                            false,
+                        ));
+                    }
+                }
+            }
         }
     }
 }
 
-fn main() -> Result<(), Error> {
+fn main() -> Result<()> {
     env_logger::init();
     let event_loop = EventLoop::new();
 
@@ -153,6 +358,10 @@ fn main() -> Result<(), Error> {
             .unwrap()
     };
 
+    // Initialize audio
+    let (_stream, stream_handle) = rodio::OutputStream::try_default()
+        .map_err(|e| anyhow::anyhow!("Failed to initialize audio: {}", e))?;
+
     // Start with cursor hidden and captured
     window.set_cursor_visible(false);
     let _ = window.set_cursor_grab(CursorGrabMode::Confined);
@@ -160,7 +369,7 @@ fn main() -> Result<(), Error> {
     let window_size = window.inner_size();
     let surface_texture = SurfaceTexture::new(window_size.width, window_size.height, &window);
     let mut pixels = Pixels::new(WIDTH, HEIGHT, surface_texture)?;
-    let mut game = GameState::new();
+    let mut game = GameState::new(stream_handle)?;
 
     event_loop.run(move |event, _, control_flow| {
         *control_flow = ControlFlow::Poll;
@@ -187,6 +396,12 @@ fn main() -> Result<(), Error> {
                         });
                     }
                 }
+            }
+            Event::WindowEvent {
+                event: WindowEvent::MouseInput { state, button, .. },
+                ..
+            } => {
+                game.handle_mouse_input(button, state == ElementState::Pressed);
             }
             Event::DeviceEvent {
                 event: DeviceEvent::MouseMotion { delta: (x, _) },

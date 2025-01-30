@@ -1,50 +1,45 @@
-use crate::engine::{Camera, Raycaster};
+use crate::engine::camera::Camera;
+use crate::engine::raycaster::Raycaster;
+use crate::game::ai::Enemy;
 
 pub struct GameState {
     pub camera: Camera,
     pub raycaster: Raycaster,
     pub paused: bool,
-    pub fps: f64,
-    pub frame_time: f64,
-    pub map: Vec<Vec<i32>>,
 }
 
 impl GameState {
     pub fn new(width: u32, height: u32) -> Self {
-        // Create a simple test map
-        let map = vec![
-            vec![1, 1, 1, 1, 1],
-            vec![1, 0, 0, 0, 1],
-            vec![1, 0, 0, 0, 1],
-            vec![1, 0, 0, 0, 1],
-            vec![1, 1, 1, 1, 1],
-        ];
-
-        let mut raycaster = Raycaster::new(width, height);
-        raycaster.set_map(map.clone());
-
         Self {
-            camera: Camera::new(2.5, 2.5),
-            raycaster,
+            camera: Camera::new(1.5, 1.5),
+            raycaster: Raycaster::new(width, height),
             paused: false,
-            fps: 0.0,
-            frame_time: 0.0,
-            map,
         }
     }
 
     pub fn update(&mut self, dt: f64) {
         if !self.paused {
-            // Will implement game logic updates
+            // Game logic updates will be added here
         }
-
-        // Update FPS counter
-        self.frame_time = dt;
-        self.fps = 1.0 / dt;
     }
 
-    pub fn render(&mut self, frame: &mut [u8]) {
-        self.raycaster.render(&self.camera, frame);
+    pub fn render(
+        &mut self,
+        frame: &mut [u8],
+        enemies: &[Enemy],
+        particles: &[crate::game::Particle],
+    ) {
+        // Clear frame
+        for pixel in frame.chunks_exact_mut(4) {
+            pixel[0] = 0x40; // R
+            pixel[1] = 0x40; // G
+            pixel[2] = 0x40; // B
+            pixel[3] = 0xFF; // A
+        }
+
+        // Render world, enemies, and particles
+        self.raycaster
+            .render(&self.camera, enemies, particles, frame);
     }
 
     pub fn toggle_pause(&mut self) {
@@ -52,15 +47,10 @@ impl GameState {
     }
 }
 
+#[derive(Debug)]
 pub enum GameScreen {
     MainMenu,
     Playing,
     Paused,
     GameOver,
-}
-
-impl Default for GameScreen {
-    fn default() -> Self {
-        Self::MainMenu
-    }
 }

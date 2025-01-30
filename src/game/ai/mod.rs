@@ -1,55 +1,31 @@
+pub mod enemy;
+
+pub use enemy::{AIState, Enemy, EnemyType};
+
 use glam::Vec2;
 
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum AIState {
-    Idle,
-    Patrol,
-    Chase,
-    Attack,
-    Retreat,
-}
+/// Find a path between two points using simple line of sight
+pub fn find_path(start: Vec2, end: Vec2, map: &[Vec<i32>]) -> Vec<Vec2> {
+    // Simple direct path - will be improved later with proper pathfinding
+    let direction = (end - start).normalize();
+    let distance = (end - start).length();
+    let steps = (distance * 2.0) as usize;
+    let step_size = distance / steps as f32;
 
-pub struct Enemy {
-    pub position: Vec2,
-    pub direction: Vec2,
-    pub state: AIState,
-    pub health: i32,
-    pub speed: f32,
-}
+    let mut path = Vec::with_capacity(steps);
+    for i in 0..=steps {
+        let t = i as f32 * step_size;
+        let point = start + direction * t;
 
-impl Enemy {
-    pub fn new(position: Vec2) -> Self {
-        Self {
-            position,
-            direction: Vec2::new(1.0, 0.0),
-            state: AIState::Idle,
-            health: 100,
-            speed: 2.0,
+        // Check if point is valid (not in a wall)
+        let x = point.x.floor() as usize;
+        let y = point.y.floor() as usize;
+        if x < map[0].len() && y < map.len() && map[y][x] == 0 {
+            path.push(point);
+        } else {
+            break; // Stop at first wall
         }
     }
 
-    // Placeholder methods to be implemented in Phase 6
-    pub fn update(&mut self, _player_pos: Vec2, _dt: f32) {
-        // Will implement AI behavior here
-    }
-
-    pub fn take_damage(&mut self, amount: i32) {
-        self.health = (self.health - amount).max(0);
-        if self.health < 30 {
-            self.state = AIState::Retreat;
-        }
-    }
-
-    pub fn is_alive(&self) -> bool {
-        self.health > 0
-    }
-}
-
-// Will implement pathfinding in Phase 6
-pub mod path {
-    use glam::Vec2;
-
-    pub fn find_path(_start: Vec2, _end: Vec2, _map: &[Vec<i32>]) -> Vec<Vec2> {
-        Vec::new() // Placeholder
-    }
+    path
 }
