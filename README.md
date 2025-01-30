@@ -17,10 +17,11 @@ The Rust rewrite adds some new features to the original:
 ### Clone the repo
 
 ### Build it
+```bash
 cargo build --release
-
-### Run it
 ```
+### Run it
+```bash
 cargo run --release
 ```
 
