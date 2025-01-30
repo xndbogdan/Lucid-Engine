@@ -1,7 +1,7 @@
 # Lucid Raycaster
 
 A simple raycasting engine that I originally wrote back in college (2017) and recently decided to rewrite in Rust for no
-particular reason. The original version was written in Java, but let's be honest for a bit and admin that 
+particular reason. The original version was written in Java, but let's be honest for a bit and admit that 
 absolutely no one likes Java. Perhaps not even Java developers themselves. So here we are.
 
 ## What's New?
