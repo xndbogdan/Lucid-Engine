@@ -40,10 +40,13 @@ If you're asking that question, you're clearly thinking too hard about it.
 
 ## Future Plans
 
-I honestly don't know if I'll do anything else with this. Maybe I'll add more features if inspiration strikes, or maybe it'll just sit here as a testament to the fact that everything will eventually be rewritten in &lt;insert flavor of the month programming language here&gt;.
+Will I work on this more? Maybe. Maybe not. Maybe I’ll wake up in a cold sweat at 3 AM with the sudden realization that I must implement dynamic lighting. Maybe I’ll forget this exists entirely and move on with my life like a well-adjusted person. Only time will tell.
 
 ## License
 
 Do whatever you want with it.
 If you somehow find a use for this, you're probably a genius or insane.
-Either way, I respect that.
+
+Either way, I respect that. Or I pity you. Or maybe I fear you. I don’t know. I don’t care.
+
+In fact, I refuse to acknowledge any consequences of this project’s existence. If this code is somehow responsible for thermonuclear war, interdimensional instability, or the heat death of the universe, that's on you. I take no responsibility. You looked at the repo. You made choices. Now you must live with them. Or don’t. Whatever.
