@@ -43,4 +43,6 @@ I honestly don't know if I'll do anything else with this. Maybe I'll add more fe
 
 ## License
 
-Do whatever you want with it. If you somehow find a use for this code, you're probably a genius or insane. Either way, I respect that.
+Do whatever you want with it.
+If you somehow find a use for this, you're probably a genius or insane.
+Either way, I respect that.
