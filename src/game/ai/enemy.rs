@@ -242,7 +242,7 @@ impl Enemy {
                                     *firing = true;
                                     self.texture = fire_texture.clone();
 
-                                    // Calculate projectile velocity
+                                    // Compute projectile velocity
                                     let direction = to_player.normalize();
                                     should_shoot = Some((
                                         self.position,

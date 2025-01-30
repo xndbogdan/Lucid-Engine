@@ -46,10 +46,10 @@ impl Weapon {
             &self.idle_texture
         };
 
-        // Calculate weapon position (centered horizontally, bottom of screen)
-        let weapon_width = width / 3; // Make weapon 1/3 of screen width
+        // Compute weapon position (centered horizontally, bottom of screen)
+        let weapon_width = width / 4; // Make weapon 1/4 of screen width
         let weapon_height = (weapon_width * texture.height / texture.width) as u32;
-        let x_offset = (width - weapon_width) / 2;
+        let x_offset = (width - weapon_width) / 2 + width / 3;
         let y_offset = height - weapon_height + self.bob_offset as u32;
 
         // Scale texture to weapon size and blend with background

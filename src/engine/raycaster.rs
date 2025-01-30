@@ -16,11 +16,12 @@ impl Raycaster {
     pub fn new(width: u32, height: u32) -> Self {
         // Initialize with a default map
         let map = vec![
-            vec![1, 1, 1, 1, 1],
-            vec![1, 0, 0, 0, 1],
-            vec![1, 0, 0, 0, 1],
-            vec![1, 0, 0, 0, 1],
-            vec![1, 1, 1, 1, 1],
+            vec![1, 1, 1, 1, 1, 1],
+            vec![1, 0, 0, 0, 0, 1],
+            vec![1, 0, 0, 0, 0, 1],
+            vec![1, 0, 0, 0, 0, 1],
+            vec![1, 0, 0, 0, 0, 1],
+            vec![1, 1, 1, 1, 1, 1],
         ];
 
         Self {
@@ -124,7 +125,7 @@ impl Raycaster {
                 }
             }
 
-            // Calculate distance to wall
+            // Compute distance to wall
             let perp_wall_dist = if side == 0 {
                 side_dist.x - delta_dist.x
             } else {
@@ -133,10 +134,10 @@ impl Raycaster {
 
             self.z_buffer[x as usize] = perp_wall_dist;
 
-            // Calculate wall height
+            // Compute wall height
             let line_height = (self.height as f32 / perp_wall_dist) as i32;
 
-            // Calculate drawing bounds
+            // Compute drawing bounds
             let mut draw_start = -line_height / 2 + self.height as i32 / 2;
             if draw_start < 0 {
                 draw_start = 0;
@@ -146,7 +147,7 @@ impl Raycaster {
                 draw_end = self.height as i32 - 1;
             }
 
-            // Calculate texture coordinates
+            // Compute texture coordinates
             let wall_x = if side == 0 {
                 camera.position.y + perp_wall_dist * ray_dir.y
             } else {
@@ -215,11 +216,10 @@ impl Raycaster {
             let sprite_screen_x =
                 ((self.width as f32 / 2.0) * (1.0 + transform_x / transform_y)) as i32;
 
-            // Calculate sprite dimensions on screen
             let sprite_height = (self.height as f32 / transform_y).abs() as i32;
-            let sprite_width = sprite_height; // Assuming square sprites
+            let sprite_width = sprite_height; // Assuming square sprites, might change later
 
-            // Calculate drawing bounds
+            // Compute drawing bounds
             let draw_start_y = -sprite_height / 2 + self.height as i32 / 2;
             let draw_end_y = sprite_height / 2 + self.height as i32 / 2;
             let draw_start_x = -sprite_width / 2 + sprite_screen_x;
@@ -282,10 +282,10 @@ impl Raycaster {
             let particle_screen_x =
                 ((self.width as f32 / 2.0) * (1.0 + transform_x / transform_y)) as i32;
 
-            // Calculate particle dimensions on screen
+            // Compute particle dimensions on screen
             let particle_size = (self.height as f32 / transform_y * 0.1).abs() as i32; // Smaller than sprites
 
-            // Calculate drawing bounds
+            // Compute drawing bounds
             let draw_start_y = -particle_size / 2 + self.height as i32 / 2;
             let draw_end_y = particle_size / 2 + self.height as i32 / 2;
             let draw_start_x = -particle_size / 2 + particle_screen_x;

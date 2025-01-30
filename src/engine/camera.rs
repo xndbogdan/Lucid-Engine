@@ -10,8 +10,8 @@ impl Camera {
     pub fn new(x: f32, y: f32) -> Self {
         Self {
             position: Vec2::new(x, y),
-            direction: Vec2::new(1.0, 0.0), // Looking along positive x-axis
-            plane: Vec2::new(0.0, -0.66),   // FOV of about 66 degrees
+            direction: Vec2::new(1.0, 0.0),
+            plane: Vec2::new(0.0, -0.8), // FOV of about ~80 degrees
         }
     }
 
@@ -33,7 +33,6 @@ impl Camera {
     }
 
     pub fn move_right(&mut self, speed: f32, map: &[Vec<i32>]) {
-        // For right movement, rotate direction vector 90 degrees clockwise
         let right = Vec2::new(self.direction.y, -self.direction.x);
         let move_vec = right * speed;
         self.move_with_collision(move_vec, map);
@@ -58,17 +57,12 @@ impl Camera {
 
         // Try to move in each direction independently
         let mut next_pos = self.position;
-
-        // Update X position if we can move in that direction
         if !self.check_collision(Vec2::new(new_pos.x, self.position.y), map) || moving_away_x {
             next_pos.x = new_pos.x;
         }
-
-        // Update Y position if we can move in that direction
         if !self.check_collision(Vec2::new(next_pos.x, new_pos.y), map) || moving_away_y {
             next_pos.y = new_pos.y;
         }
-
         self.position = next_pos;
     }
 

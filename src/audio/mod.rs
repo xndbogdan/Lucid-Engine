@@ -4,7 +4,6 @@ use std::collections::HashMap;
 pub mod sound;
 pub use sound::{MusicPlayer, SoundEffect, SoundManager};
 
-/// Manages all audio playback in the game
 pub struct AudioManager {
     _stream: OutputStream,
     stream_handle: OutputStreamHandle,
@@ -13,7 +12,6 @@ pub struct AudioManager {
 }
 
 impl AudioManager {
-    /// Create a new audio manager
     pub fn new() -> Result<Self, String> {
         let (stream, stream_handle) = OutputStream::try_default()
             .map_err(|e| format!("Failed to open audio output stream: {}", e))?;
@@ -26,7 +24,6 @@ impl AudioManager {
         })
     }
 
-    /// Play a sound effect from a file
     pub fn play_sound(&mut self, path: &str) -> Result<(), String> {
         let sink = Sink::try_new(&self.stream_handle)
             .map_err(|e| format!("Failed to create audio sink: {}", e))?;

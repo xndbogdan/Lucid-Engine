@@ -6,7 +6,7 @@ use glam::Vec2;
 
 /// Find a path between two points using simple line of sight
 pub fn find_path(start: Vec2, end: Vec2, map: &[Vec<i32>]) -> Vec<Vec2> {
-    // Simple direct path - will be improved later with proper pathfinding
+    // TODO: Simple direct path; improve later with proper pathfinding
     let direction = (end - start).normalize();
     let distance = (end - start).length();
     let steps = (distance * 2.0) as usize;

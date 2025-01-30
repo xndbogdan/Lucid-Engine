@@ -4,7 +4,6 @@ use std::fs::File;
 use std::io::BufReader;
 use std::path::{Path, PathBuf};
 
-/// Represents a sound effect with its properties
 pub struct SoundEffect {
     name: String,
     path: PathBuf,
@@ -59,13 +58,11 @@ impl SoundManager {
         let sink = Sink::try_new(&self.stream_handle)
             .map_err(|e| format!("Failed to create audio sink: {}", e))?;
 
-        // Load and decode the audio file
         let file =
             File::open(&effect.path).map_err(|e| format!("Failed to open audio file: {}", e))?;
         let source = Decoder::new(BufReader::new(file))
             .map_err(|e| format!("Failed to decode audio file: {}", e))?;
 
-        // Set the volume and play
         sink.set_volume(effect.volume * self.master_volume);
         sink.append(source);
 
@@ -97,7 +94,6 @@ impl SoundManager {
     }
 }
 
-/// Manages background music playback
 pub struct MusicPlayer {
     stream_handle: OutputStreamHandle,
     current_track: Option<Sink>,
@@ -109,7 +105,7 @@ impl MusicPlayer {
         Self {
             stream_handle,
             current_track: None,
-            volume: 1.0,
+            volume: 0.3,
         }
     }
 
@@ -119,7 +115,6 @@ impl MusicPlayer {
             sink.stop();
         }
 
-        // Create a new sink for the music
         let sink = Sink::try_new(&self.stream_handle)
             .map_err(|e| format!("Failed to create audio sink: {}", e))?;
 
@@ -128,10 +123,8 @@ impl MusicPlayer {
         let source = Decoder::new(BufReader::new(file))
             .map_err(|e| format!("Failed to decode music file: {}", e))?;
 
-        // Make the source repeating
         let source = source.repeat_infinite();
 
-        // Set the volume and play
         sink.set_volume(self.volume);
         sink.append(source);
 
