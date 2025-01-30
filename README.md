@@ -39,7 +39,7 @@ If you're asking that question, you're clearly thinking too hard about it.
 
 ## Future Plans
 
-I honestly don't know if I'll do anything else with this. Maybe I'll add more features if inspiration strikes, or maybe it'll just sit here as a testament to the fact that everything will eventually be rewritten in <insert flavor of the month language here>.
+I honestly don't know if I'll do anything else with this. Maybe I'll add more features if inspiration strikes, or maybe it'll just sit here as a testament to the fact that everything will eventually be rewritten in &lt;insert flavor of the month programming language here&gt;.
 
 ## License
 
